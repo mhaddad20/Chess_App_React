@@ -1,4 +1,4 @@
-import React,{useState} from "react"
+import React,{useRef} from "react"
 import Tile from "../Tile/tile";
 import './Chessboard.css'
 
@@ -11,7 +11,7 @@ interface Piece{
 }
 
 const pieces: Piece[] =[]
-let activePiece: HTMLElement | null = null
+
 
 for(let i=0;i<2;i++){
     let piece_color = i===0 ? 'b':'w'
@@ -34,34 +34,54 @@ for(let j=0;j<8;j++){
     pieces.push({image:'../../bpawn.png',x:j,y:1})
 }
 
-function movePiece(e:React.MouseEvent)
-{
+
+
+export default function Chessboard(){
+    const chessboardRef = useRef<HTMLDivElement>(null)
+let board=[]
+let activePiece: HTMLElement | null = null
+
+
+
+function grabPiece(e:React.MouseEvent){
+
+  
     const element = e.target as HTMLElement
     if(element.classList.contains('chess_piece')){
         activePiece=element
     }
+
+}
+
+
+function movePiece(e:React.MouseEvent)
+{     
+    const x = e.clientX-50
+    const y = e.clientY-50
+    const chessboard= chessboardRef.current
+    if(activePiece && chessboard){
+        // console.log(chessboard.offsetLeft+chessboard.clientLeft)
+        activePiece.style.position='absolute'
+
+        activePiece.style.left =  x<chessboard.offsetLeft-25 ? `${chessboard.offsetLeft-25}px`:`${x}px`
+        activePiece.style.top= y<chessboard.offsetTop-25 ? `${chessboard.offsetTop-25}px`:`${y}px`
+        if(x>(chessboard.offsetLeft+chessboard.clientWidth)-85){
+            activePiece.style.left = `${chessboard.offsetLeft+chessboard.clientWidth-85}px`
+        }
+        if(y>(chessboard.offsetTop+chessboard.clientHeight)-85){
+            activePiece.style.top = `${chessboard.offsetTop+chessboard.clientHeight-85}px`
+        }
+
+
+    }
   
 }
 
-function holdPiece(e:React.MouseEvent){
-    const x = e.clientX
-    const y = e.clientY
-    if(activePiece){
-        activePiece.style.position='absolute'
-        activePiece.style.top=`${y-50}px`
-        activePiece.style.left=`${x-50}px`
-    }
-
-}
-
-function releasePiece(){
+function dropPiece(){
     if(activePiece){
         activePiece=null
     }
 }
-
-export default function Chessboard(){
-let board=[]
 
 for(let i =0;i<8;i++){
     for(let j=0;j<8;j++){
@@ -71,11 +91,13 @@ for(let i =0;i<8;i++){
                 image=p.image
             }
     })
-    board.push( <Tile  key={`${i},${j}`} image={image} tile_num_row={i} tile_num_column={j}/>)
+    board.push( <Tile key={`${i},${j}`} image={image} tile_num_row={i} tile_num_column={j}/>)
     }
 }
 
-return <div className="chessboard" onMouseMove={(e)=>holdPiece(e)} onMouseDown={(e)=>movePiece(e)} onMouseUp={()=>releasePiece()}>
+return <div className="chessboard" onMouseMove={(e)=>movePiece(e)} onMouseDown={(e)=>grabPiece(e)} 
+onMouseUp={()=>dropPiece()}
+ref = {chessboardRef}>
     {board}
     </div>
 }
