@@ -36,22 +36,14 @@ for(let j=0;j<8;j++){
 
 function movePiece(e:React.MouseEvent)
 {
-    console.log('active')
-
     const element = e.target as HTMLElement
     if(element.classList.contains('chess_piece')){
         activePiece=element
     }
   
 }
-function releasePiece(){
-    if(activePiece){
-        activePiece=null
-    }
-}
 
 function holdPiece(e:React.MouseEvent){
-    console.log(3)
     const x = e.clientX
     const y = e.clientY
     if(activePiece){
@@ -60,6 +52,12 @@ function holdPiece(e:React.MouseEvent){
         activePiece.style.left=`${x-50}px`
     }
 
+}
+
+function releasePiece(){
+    if(activePiece){
+        activePiece=null
+    }
 }
 
 export default function Chessboard(){
@@ -79,8 +77,5 @@ for(let i =0;i<8;i++){
 
 return <div className="chessboard" onMouseMove={(e)=>holdPiece(e)} onMouseDown={(e)=>movePiece(e)} onMouseUp={()=>releasePiece()}>
     {board}
-    {/* <div style={{backgroundImage:`url('/bking.png')`}}></div> */}
-  
-
     </div>
 }
