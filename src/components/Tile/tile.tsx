@@ -15,7 +15,7 @@ interface tileProps {
 
 export default function Tile({ tile_num_row, tile_num_column, image }: tileProps) {
     if ((tile_num_row + tile_num_column) % 2 === 0) {
-        return <div className="tile white_tile" onClick={()=>console.log(tile_num_row,tile_num_column)}>
+        return <div className="tile white_tile" >
     {image && <div style={{ backgroundImage: `url(${image})` }} className='chess_piece'></div>}
 
         </div>
