@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react"
-import { act } from "react-dom/test-utils";
 import Tile from "../Tile/tile";
 import './Chessboard.css'
+import Referee from '../Referee/Referee'
 
 
 
@@ -9,41 +9,61 @@ interface Piece {
     image?: string | undefined;
     x: number | undefined;
     y: number | undefined;
+    'piece_name': string | undefined;
 }
 
 const initialBoardState: Piece[] = []
 
 for (let i = 0; i < 2; i++) {
     let piece_color = i === 0 ? 'b' : 'w'
+    let piece_name = i === 0 ? 'b' : 'w'
     let y = i === 0 ? 0 : 7
-    initialBoardState.push({ image: `../../${piece_color}rook.png`, x: 0, y: y })
-    initialBoardState.push({ image: `../../${piece_color}knight.png`, x: 1, y: y })
-    initialBoardState.push({ image: `../../${piece_color}bishop.png`, x: 2, y: y })
-    initialBoardState.push({ image: `../../${piece_color}queen.png`, x: 3, y: y })
-    initialBoardState.push({ image: `../../${piece_color}king.png`, x: 4, y: y })
-    initialBoardState.push({ image: `../../${piece_color}bishop.png`, x: 5, y: y })
-    initialBoardState.push({ image: `../../${piece_color}knight.png`, x: 6, y: y })
-    initialBoardState.push({ image: `../../${piece_color}rook.png`, x: 7, y: y })
+    initialBoardState.push({ image: `../../${piece_color}rook.png`, x: 0, y: y, 'piece_name': `${piece_name}r` })
+    initialBoardState.push({ image: `../../${piece_color}knight.png`, x: 1, y: y, 'piece_name': `${piece_name}n` })
+    initialBoardState.push({ image: `../../${piece_color}bishop.png`, x: 2, y: y, 'piece_name': `${piece_name}b` })
+    initialBoardState.push({ image: `../../${piece_color}queen.png`, x: 3, y: y, 'piece_name': `${piece_name}q` })
+    initialBoardState.push({ image: `../../${piece_color}king.png`, x: 4, y: y, 'piece_name': `${piece_name}k` })
+    initialBoardState.push({ image: `../../${piece_color}bishop.png`, x: 5, y: y, 'piece_name': `${piece_name}b` })
+    initialBoardState.push({ image: `../../${piece_color}knight.png`, x: 6, y: y, 'piece_name': `${piece_name}n` })
+    initialBoardState.push({ image: `../../${piece_color}rook.png`, x: 7, y: y, 'piece_name': `${piece_name}r` })
+
 }
 
 for (let j = 0; j < 8; j++) {
-    initialBoardState.push({ image: '../../wpawn.png', x: j, y: 6 })
+    // initialBoardState.push({ image: '../../wpawn.png', x: j, y: 6, 'piece_name': 'wp' })
 }
 
 for (let j = 0; j < 8; j++) {
-    initialBoardState.push({ image: '../../bpawn.png', x: j, y: 1 })
+    // initialBoardState.push({ image: '../../bpawn.png', x: j, y: 1, 'piece_name': 'bp' })
 }
 
+const initialBoardArray: any = [[], [], [], [], [], [], [], []]
+
+
+
+
+for (let i = 0; i < 8; i++) {
+    for (let j = 0; j < 8; j++) {
+        initialBoardArray[i].push('')
+    }
+}
+for (let p of initialBoardState) {
+    if (p.x !== undefined && p.y!==undefined) {
+        initialBoardArray[p.y][p.x]=p.piece_name
+    }
+}
 
 
 export default function Chessboard() {
     const [pieces, setPieces] = useState<Piece[]>(initialBoardState)
+    const [current_board,setBoard] = useState(initialBoardArray)
     const [grid_x, setGridX] = useState(0)
     const [grid_y, setGridY] = useState(0)
     const [active_piece, setActivePiece] = useState<HTMLElement | null>(null)
 
 
     const chessboardRef = useRef<HTMLDivElement>(null)
+    const referee = new Referee()
     let board = []
 
 
@@ -68,29 +88,23 @@ export default function Chessboard() {
 
     }
 
-    (function() {
+    (function () {
         document.onmousemove = handleMouseMove;
-        function handleMouseMove(event:any) {
-        const chessboard = chessboardRef.current
+        function handleMouseMove(event: any) {
+            const chessboard = chessboardRef.current
 
-        if(chessboard && active_piece){
-            if(event.clientX<chessboard.offsetLeft || event.clientX>((chessboard.offsetLeft +chessboard.clientWidth)-25)
-            || event.clientY<chessboard.offsetTop || event.clientY>((chessboard.offsetTop +chessboard.clientHeight)-25)){
-                console.log('out')
-                console.log(active_piece)
-                active_piece.style.position='relative'
-                active_piece.style.removeProperty('left')
-                active_piece.style.removeProperty('top')
-                setActivePiece(null)
-    
+            if (chessboard && active_piece) {
+                if (event.clientX < chessboard.offsetLeft || event.clientX > ((chessboard.offsetLeft + chessboard.clientWidth) - 25)
+                    || event.clientY < chessboard.offsetTop || event.clientY > ((chessboard.offsetTop + chessboard.clientHeight) - 25)) {
+                    active_piece.style.position = 'relative'
+                    active_piece.style.removeProperty('left')
+                    active_piece.style.removeProperty('top')
+                    setActivePiece(null)
+
+                }
+
+
             }
-
-            
-        }
-
-
-    
-          
         }
     })();
 
@@ -113,29 +127,61 @@ export default function Chessboard() {
         }
 
     }
+    function removePiece(x:number,y:number,piece_name:string | undefined){
+        setPieces((current_pieces) => {
+
+            const updated_board = current_pieces.map((p) => {
+
+                if (p.x === x && p.y === y && p.piece_name===piece_name) {
+                   p.x=undefined
+                   p.y=undefined
+                }
+                return p
+            })
+
+            return updated_board
+        })
+    }
 
     function dropPiece(e: React.MouseEvent) {
-        console.log(3)
         const chessboard = chessboardRef.current
         if (active_piece && chessboard) {
 
             const x = Math.floor((e.clientX - chessboard.offsetLeft) / 100)
             const y = Math.floor((e.clientY - chessboard.offsetTop) / 100)
 
-
             setPieces((current_pieces) => {
-        
+
                 const updated_board = current_pieces.map((p) => {
 
-                    if (p.x === grid_x && p.y === grid_y) { 
+                    if (p.x === grid_x && p.y === grid_y) {
                         if (grid_x === x && grid_y === y) {
-                            active_piece.style.position='relative'
+                            active_piece.style.position = 'relative'
                             active_piece.style.removeProperty('left')
                             active_piece.style.removeProperty('top')
                         }
                         else {
+                            if(referee.isValidMove(grid_x,grid_y,x, y,current_board)){
                             p.x = x
                             p.y = y
+                            if(current_board[y][x]!==''){
+                                if(p.piece_name==='wp' && y===0){
+                                    p.piece_name='wq'
+                                    p.image = '../../wqueen.png'
+                                }
+                                else if(p.piece_name==='bp' && y===7){
+                                    p.piece_name='bq'
+                                    p.image = '../../bqueen.png'
+                                }
+                                removePiece(x,y,current_board[y][x])
+                            }
+                            setBoard((prevState:any)=>{
+                                const newBoard = [...prevState]
+                                newBoard[grid_y][grid_x]=''
+                                newBoard[y][x]=p.piece_name
+                                return newBoard
+                            })
+                        }
                         }
 
 
@@ -147,12 +193,12 @@ export default function Chessboard() {
                 return updated_board
             })
 
-            active_piece.style.position='relative'
+            active_piece.style.position = 'relative'
             active_piece.style.removeProperty('left')
             active_piece.style.removeProperty('top')
-
             setActivePiece(null)
             
+
         }
     }
 
