@@ -48,24 +48,67 @@ for (let i = 0; i < 8; i++) {
     }
 }
 for (let p of initialBoardState) {
-    if (p.x !== undefined && p.y!==undefined) {
-        initialBoardArray[p.y][p.x]=p.piece_name
+    if (p.x !== undefined && p.y !== undefined) {
+        initialBoardArray[p.y][p.x] = p.piece_name
     }
 }
 
 
 export default function Chessboard() {
     const [pieces, setPieces] = useState<Piece[]>(initialBoardState)
-    const [current_board,setBoard] = useState(initialBoardArray)
+    const [current_board, setBoard] = useState(initialBoardArray)
     const [grid_x, setGridX] = useState(0)
     const [grid_y, setGridY] = useState(0)
+    const [player_turn, setPlayerTurn] = useState(0)
+
     const [active_piece, setActivePiece] = useState<HTMLElement | null>(null)
 
 
     const chessboardRef = useRef<HTMLDivElement>(null)
     const referee = new Referee()
     let board = []
+    
+    React.useEffect(()=>{
+        let player_checked = player_turn%2===0 ? 'w':'b'
+        let enemy = player_checked ==='w' ? 'b' :'w'
+        let king_x:any = returnKingX(player_checked, current_board)
+        let king_y:any= returnKingY(player_checked, current_board)
+        if(kingUnderAttack(king_x,king_y,current_board,player_checked)){
+            console.log('check')
+        }
 
+        const valid_knight_moves = []
+        valid_knight_moves.push([king_x - 2, king_y - 1], [king_x - 2, king_y + 1], [king_x - 1, king_y - 2], [king_x - 1, king_y + 2], [king_x + 1, king_y - 2], [king_x + 2, king_y - 1], [king_x + 2, king_y + 1], [king_x + 1, king_y + 2])
+        for(let p of valid_knight_moves){
+            if(p[0]<=7 && p[0] >=0 && p[1]<=7 && p[1]>=0){
+                console.log(current_board[p[1]][p[0]] ,enemy)
+                if(current_board[p[1]][p[0]]===`${enemy}n`){
+                    console.log('check')
+
+                }
+            }
+        }
+        if(king_x-1>=0 && king_y-1>=0 && enemy==='b'){
+            if(current_board[king_y-1][king_x-1]==='bp'){
+                console.log('check')
+            }
+        }
+        if(king_x+1>=0 && king_y-1>=0 && enemy==='b'){
+            if(current_board[king_y-1][king_x+1]==='bp'){
+                console.log('check')
+            }
+        } if(king_x-1>=0 && king_y-1>=0 && enemy==='w'){
+            if(current_board[king_y-1][king_x-1]==='wp'){
+                console.log('check')
+            }
+        } if(king_x-1>=0 && king_y-1>=0 && enemy==='b'){
+            if(current_board[king_y-1][king_x-1]==='wp'){
+                console.log('check')
+            }
+        }
+
+
+    },[current_board])
 
     function grabPiece(e: React.MouseEvent) {
         const chessboard = chessboardRef.current
@@ -127,14 +170,14 @@ export default function Chessboard() {
         }
 
     }
-    function removePiece(x:number,y:number,piece_name:string | undefined){
+    function removePiece(x: number, y: number, piece_name: string | undefined) {
         setPieces((current_pieces) => {
 
             const updated_board = current_pieces.map((p) => {
 
-                if (p.x === x && p.y === y && p.piece_name===piece_name) {
-                   p.x=undefined
-                   p.y=undefined
+                if (p.x === x && p.y === y && p.piece_name === piece_name) {
+                    p.x = undefined
+                    p.y = undefined
                 }
                 return p
             })
@@ -161,39 +204,45 @@ export default function Chessboard() {
                             active_piece.style.removeProperty('top')
                         }
                         else {
-                            if(referee.isValidMove(grid_x,grid_y,x, y,current_board)){
-                                const copy_board=current_board.map((p:any)=>p.slice())
-                                copy_board[y][x]=p.piece_name
-                                copy_board[p.y][p.x]=''
-                                
-                                let color = p.piece_name?.includes('w') ? 'w' :'b'
-                                for(let i=0;i<8;i++){
-                                    for(let j=0;j<8;j++){
-                                        if(copy_board[j][i]===`${color}k`){
-                                            console.log(kingUnderAttack(i,j,copy_board,color))
-                                        }
+                            if (referee.isValidMove(grid_x, grid_y, x, y, current_board)) {
+                                const copy_board = current_board.map((p: any) => p.slice())
+                                copy_board[y][x] = p.piece_name
+                                copy_board[p.y][p.x] = ''
+                                let king_open = false
+                                let color = p.piece_name?.includes('w') ? 'w' : 'b'
+                                let king_x:number | undefined = returnKingX(color, copy_board)
+                                let king_y:number | undefined= returnKingY(color, copy_board)
+
+
+                                    if (kingUnderAttack(king_x, king_y, copy_board, color)) {
+            
+                                        king_open = true
                                     }
+                                
+
+                                if (!king_open) {
+                                    setPlayerTurn(player_turn+1)
+                                    p.x = x
+                                    p.y = y
+                                    if (current_board[y][x] !== '') {
+                                        if (p.piece_name === 'wp' && y === 0) {
+                                            p.piece_name = 'wq'
+                                            p.image = '../../wqueen.png'
+                                        }
+                                        else if (p.piece_name === 'bp' && y === 7) {
+                                            p.piece_name = 'bq'
+                                            p.image = '../../bqueen.png'
+                                        }
+                                        removePiece(x, y, current_board[y][x])
+                                    }
+                                    setBoard((prevState: any) => {
+                                        const newBoard = [...prevState]
+                                        newBoard[grid_y][grid_x] = ''
+                                        newBoard[y][x] = p.piece_name
+                                        return newBoard
+                                    })
                                 }
-                            p.x = x
-                            p.y = y
-                            if(current_board[y][x]!==''){
-                                if(p.piece_name==='wp' && y===0){
-                                    p.piece_name='wq'
-                                    p.image = '../../wqueen.png'
-                                }
-                                else if(p.piece_name==='bp' && y===7){
-                                    p.piece_name='bq'
-                                    p.image = '../../bqueen.png'
-                                }
-                                removePiece(x,y,current_board[y][x])
                             }
-                            setBoard((prevState:any)=>{
-                                const newBoard = [...prevState]
-                                newBoard[grid_y][grid_x]=''
-                                newBoard[y][x]=p.piece_name
-                                return newBoard
-                            })
-                        }
                         }
 
 
@@ -209,82 +258,100 @@ export default function Chessboard() {
             active_piece.style.removeProperty('left')
             active_piece.style.removeProperty('top')
             setActivePiece(null)
-            
+
 
         }
     }
+    function returnKingX(color: string, board: any) {
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
+                if (board[j][i] === `${color}k`) {
+                    return i
+                }
+            }
+        }
+    }
+    function returnKingY(color: string, board: any) {
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
+                if (board[j][i] === `${color}k`) {
+                    return j
+                }
+            }
+        }
+    }
 
-    function kingUnderAttack(x:number,y:number,board:any,color:string|undefined){
+    function kingUnderAttack(x: any, y: any, board: any, color: string | undefined) {
         //vertically
-        let enemy_color = color === 'w' ? 'b' :'w'
-        for(let i=y-1;i>=0;i--){
-            if(board[i][x]===`${enemy_color}q` || board[i][x]===`${enemy_color}r` ){
+        let enemy_color = color === 'w' ? 'b' : 'w'
+        for (let i = y - 1; i >= 0; i--) {
+            if (board[i][x] === `${enemy_color}q` || board[i][x] === `${enemy_color}r`) {
                 return true
             }
-            else if(board[i][x]!==''){
+            else if (board[i][x] !== '') {
                 break;
             }
         }
-        for(let i=y+1;i<=7;i++){
-            if(board[i][x]===`${enemy_color}q` || board[i][x]===`${enemy_color}r` ){
+        for (let i = y + 1; i <= 7; i++) {
+            if (board[i][x] === `${enemy_color}q` || board[i][x] === `${enemy_color}r`) {
                 return true
             }
-            else if(board[i][x]!==''){
+            else if (board[i][x] !== '') {
                 break;
             }
         }
 
         //horizontally
-        for(let i=x-1;i>=0;i--){
-            if(board[y][i]===`${enemy_color}q` || board[y][i]===`${enemy_color}r` ){
+        for (let i = x - 1; i >= 0; i--) {
+            if (board[y][i] === `${enemy_color}q` || board[y][i] === `${enemy_color}r`) {
                 return true
             }
-            else if(board[y][i]!==''){
+            else if (board[y][i] !== '') {
                 break;
             }
         }
-        for(let i=x+1;i<=7;i++){
-            if(board[y][i]===`${enemy_color}q` || board[y][i]===`${enemy_color}r` ){
+        for (let i = x + 1; i <= 7; i++) {
+            if (board[y][i] === `${enemy_color}q` || board[y][i] === `${enemy_color}r`) {
                 return true
             }
-            else if(board[y][i]!==''){
+            else if (board[y][i] !== '') {
                 break;
             }
         }
 
         //right-up
-        for(let i=x+1,j=y-1;i<=7&&j>=0;i++,j--){
-            if(board[j][i]===`${enemy_color}q` || board[j][i]===`${enemy_color}b` ){
+        for (let i = x + 1, j = y - 1; i <= 7 && j >= 0; i++, j--) {
+            if (board[j][i] === `${enemy_color}q` || board[j][i] === `${enemy_color}b`) {
                 return true
             }
-            else if(board[j][i]!==''){
+            else if (board[j][i] !== '') {
                 break;
             }
         }
-         //right-down
-         for(let i=x+1,j=y+1;i<=7&&j<=7;i++,j++){
-            if(board[j][i]===`${enemy_color}q` || board[j][i]===`${enemy_color}b` ){
+        //right-down
+        for (let i = x + 1, j = y + 1; i <= 7 && j <= 7; i++, j++) {
+            if (board[j][i] === `${enemy_color}q` || board[j][i] === `${enemy_color}b`) {
                 return true
             }
-            else if(board[j][i]!==''){
+            else if (board[j][i] !== '') {
                 break;
             }
         }
-         //left-down
-         for(let i=x-1,j=y+1;i>=0&&j<=7;i--,j++){
-            if(board[j][i]===`${enemy_color}q` || board[j][i]===`${enemy_color}b` ){
+        //left-down
+        for (let i = x - 1, j = y + 1; i >= 0 && j <= 7; i--, j++) {
+            if (board[j][i] === `${enemy_color}q` || board[j][i] === `${enemy_color}b`) {
                 return true
             }
-            else if(board[j][i]!==''){
+            else if (board[j][i] !== '') {
                 break;
             }
         }
-         //left-up
-         for(let i=x-1,j=y-1;i>=0&&j>=0;i--,j--){
-            if(board[j][i]===`${enemy_color}q` || board[j][i]===`${enemy_color}b` ){
+        //left-up
+        for (let i = x - 1, j = y - 1; i >= 0 && j >= 0; i--, j--) {
+            if (board[j][i] === `${enemy_color}q` || board[j][i] === `${enemy_color}b`) {
                 return true
             }
-            else if(board[j][i]!==''){
+            else if (board[j][i] !== '') {
                 break;
             }
         }
