@@ -308,7 +308,6 @@ export default class Referee {
             valid_king_moves.push([px - 1, py], [px - 1, py - 1], [px - 1, py + 1], [px, py + 1], [px, py - 1], [px + 1, py], [px + 1, py + 1], [px + 1, py - 1])
             for (let p of valid_king_moves) {
                 if (p[0] === x && p[1] === y) {
-                    console.log(board[p[1]][p[0]])
                     const enemy_king_squares = [[x - 1, y], [x - 1, y - 1], [x - 1, y + 1], [x, y + 1], [x, y - 1], [x + 1, y], [x + 1, y + 1], [x + 1, y - 1]]
                     for (let p of enemy_king_squares) {
                         if (p[0] >= 0 && p[0] <= 7 && p[1] >= 0 && p[1] <= 7) {
