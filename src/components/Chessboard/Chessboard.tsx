@@ -30,11 +30,11 @@ for (let i = 0; i < 2; i++) {
 }
 
 for (let j = 0; j < 8; j++) {
-    // initialBoardState.push({ image: '../../wpawn.png', x: j, y: 6, 'piece_name': 'wp' })
+    initialBoardState.push({ image: '../../wpawn.png', x: j, y: 6, 'piece_name': 'wp' })
 }
 
 for (let j = 0; j < 8; j++) {
-    // initialBoardState.push({ image: '../../bpawn.png', x: j, y: 1, 'piece_name': 'bp' })
+    initialBoardState.push({ image: '../../bpawn.png', x: j, y: 1, 'piece_name': 'bp' })
 }
 
 const initialBoardArray: any = [[], [], [], [], [], [], [], []]
