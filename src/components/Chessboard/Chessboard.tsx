@@ -162,6 +162,18 @@ export default function Chessboard() {
                         }
                         else {
                             if(referee.isValidMove(grid_x,grid_y,x, y,current_board)){
+                                const copy_board=current_board.map((p:any)=>p.slice())
+                                copy_board[y][x]=p.piece_name
+                                copy_board[p.y][p.x]=''
+                                
+                                let color = p.piece_name?.includes('w') ? 'w' :'b'
+                                for(let i=0;i<8;i++){
+                                    for(let j=0;j<8;j++){
+                                        if(copy_board[j][i]===`${color}k`){
+                                            console.log(kingUnderAttack(i,j,copy_board,color))
+                                        }
+                                    }
+                                }
                             p.x = x
                             p.y = y
                             if(current_board[y][x]!==''){
@@ -200,6 +212,84 @@ export default function Chessboard() {
             
 
         }
+    }
+
+    function kingUnderAttack(x:number,y:number,board:any,color:string|undefined){
+        //vertically
+        let enemy_color = color === 'w' ? 'b' :'w'
+        for(let i=y-1;i>=0;i--){
+            if(board[i][x]===`${enemy_color}q` || board[i][x]===`${enemy_color}r` ){
+                return true
+            }
+            else if(board[i][x]!==''){
+                break;
+            }
+        }
+        for(let i=y+1;i<=7;i++){
+            if(board[i][x]===`${enemy_color}q` || board[i][x]===`${enemy_color}r` ){
+                return true
+            }
+            else if(board[i][x]!==''){
+                break;
+            }
+        }
+
+        //horizontally
+        for(let i=x-1;i>=0;i--){
+            if(board[y][i]===`${enemy_color}q` || board[y][i]===`${enemy_color}r` ){
+                return true
+            }
+            else if(board[y][i]!==''){
+                break;
+            }
+        }
+        for(let i=x+1;i<=7;i++){
+            if(board[y][i]===`${enemy_color}q` || board[y][i]===`${enemy_color}r` ){
+                return true
+            }
+            else if(board[y][i]!==''){
+                break;
+            }
+        }
+
+        //right-up
+        for(let i=x+1,j=y-1;i<=7&&j>=0;i++,j--){
+            if(board[j][i]===`${enemy_color}q` || board[j][i]===`${enemy_color}b` ){
+                return true
+            }
+            else if(board[j][i]!==''){
+                break;
+            }
+        }
+         //right-down
+         for(let i=x+1,j=y+1;i<=7&&j<=7;i++,j++){
+            if(board[j][i]===`${enemy_color}q` || board[j][i]===`${enemy_color}b` ){
+                return true
+            }
+            else if(board[j][i]!==''){
+                break;
+            }
+        }
+         //left-down
+         for(let i=x-1,j=y+1;i>=0&&j<=7;i--,j++){
+            if(board[j][i]===`${enemy_color}q` || board[j][i]===`${enemy_color}b` ){
+                return true
+            }
+            else if(board[j][i]!==''){
+                break;
+            }
+        }
+         //left-up
+         for(let i=x-1,j=y-1;i>=0&&j>=0;i--,j--){
+            if(board[j][i]===`${enemy_color}q` || board[j][i]===`${enemy_color}b` ){
+                return true
+            }
+            else if(board[j][i]!==''){
+                break;
+            }
+        }
+
+        return false
     }
 
     for (let i = 0; i < 8; i++) {
